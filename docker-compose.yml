@@ -4,9 +4,9 @@ services:
     db:
         image: postgres:15-alpine
         environment:
-            POSTGRES_USER: todo_user
-            POSTGRES_PASSWORD: todo_password
-            POSTGRES_DB: todo_db
+            POSTGRES_USER: to_do_list_user
+            POSTGRES_PASSWORD: to_do_list_password
+            POSTGRES_DB: to_do_list_db
         volumes:
             - postgres_data:/var/lib/postgresql/data
         ports:
@@ -22,7 +22,7 @@ services:
         depends_on:
             - db
         environment:
-            - DATABASE_URL=postgres://todo_user:todo_password@db:5432/todo_db
+            - DATABASE_URL=postgres://to_do_list_user:to_do_list_password@db:5432/to_do_list_db
 
     frontend:
         build: ./frontend

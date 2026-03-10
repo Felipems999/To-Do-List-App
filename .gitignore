@@ -2,6 +2,6 @@ node_modules/
 __pycache__/
 *.pyc
 .env
-.venv/
+venv/
 db.sqlite3
 .DS_Store

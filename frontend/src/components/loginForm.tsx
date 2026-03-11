@@ -74,6 +74,12 @@ const LoginForm = () => {
                     onChange={(e) => setEmail(e.target.value)}
                     autoComplete="email"
                     autoFocus
+                    sx={{
+                        "& input:-webkit-autofill": {
+                            WebkitBoxShadow: "0 0 0 100px white inset",
+                            WebkitTextFillColor: "#000",
+                        },
+                    }}
                 />
                 <TextField
                     margin="normal"
@@ -84,6 +90,12 @@ const LoginForm = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     autoComplete="current-password"
+                    sx={{
+                        "& input:-webkit-autofill": {
+                            WebkitBoxShadow: "0 0 0 100px white inset",
+                            WebkitTextFillColor: "#000",
+                        },
+                    }}
                 />
                 <Button
                     type="submit"

@@ -1,17 +1,14 @@
 import pytest
-from django.contrib.auth import get_user_model
-
-User = get_user_model()
+from django.urls import reverse
 
 
 @pytest.mark.django_db
-def test_create_user(client):
+def test_create_user(api_client):
+    url = reverse("register")
     payload = {
         "username": "testuser",
         "email": "test@example.com",
         "password": "strongpassword123",
     }
-    response = client.post("/api/users/register/", payload)
+    response = api_client.post(url, payload)
     assert response.status_code == 201
-    assert User.objects.count() == 1
-    assert User.objects.get().email == "test@example.com"

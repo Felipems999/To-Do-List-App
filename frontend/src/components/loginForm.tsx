@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "../contexts/authContext";
 import { useNavigate } from "react-router-dom";
+import { Link as RouterLink } from "react-router-dom";
 import {
     Box,
     TextField,
@@ -107,8 +108,8 @@ const LoginForm = () => {
                 >
                     Entrar
                 </Button>
-                <Link href="/register" underline="always" color="inherit">
-                    {<Typography>Realizar cadastro!</Typography>}
+                <Link component={RouterLink} to="/register" underline="hover">
+                    Faça seu registro!
                 </Link>
             </Box>
         </Paper>

@@ -1,7 +1,8 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./contexts/authContext";
 import { Login } from "./pages/login";
-import { CssBaseline, Paper } from "@mui/material";
+import HomePage from "./pages/home";
+import { CssBaseline } from "@mui/material";
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
     const { user, loading } = useAuth();
@@ -18,10 +19,10 @@ function App() {
                 <Routes>
                     <Route path="/login" element={<Login />} />
                     <Route
-                        path="/dashboard"
+                        path="/home"
                         element={
                             <PrivateRoute>
-                                <Paper></Paper>
+                                <HomePage />
                             </PrivateRoute>
                         }
                     />

@@ -23,9 +23,10 @@ const LoginForm = () => {
         setError(false);
         try {
             await login(email, password);
-            navigate("/dashboard");
+            navigate("/home");
         } catch (error) {
             setError(true);
+            console.error("Erro na autenticação:", error);
         }
     };
 

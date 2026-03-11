@@ -1,7 +1,12 @@
 from django.shortcuts import render
 
 from rest_framework import generics, permissions
-from .serializer import UserSerializer
+from rest_framework_simplejwt.views import TokenObtainPairView
+from .serializer import UserSerializer, MyTokenObtainPairSerializer
+
+
+class LoginView(TokenObtainPairView):
+    serializer_class = MyTokenObtainPairSerializer
 
 
 class RegisterView(generics.CreateAPIView):

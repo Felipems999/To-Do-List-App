@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from "./contexts/authContext";
 import { Login } from "./pages/login";
 import HomePage from "./pages/home";
 import { CssBaseline } from "@mui/material";
+import { Register } from "./pages/register";
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
     const { user, loading } = useAuth();
@@ -18,6 +19,7 @@ function App() {
                 <CssBaseline />
                 <Routes>
                     <Route path="/login" element={<Login />} />
+                    <Route path="/register" element={<Register />} />
                     <Route
                         path="/home"
                         element={

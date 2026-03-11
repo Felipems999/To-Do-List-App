@@ -8,6 +8,7 @@ import {
     Typography,
     Paper,
     Alert,
+    Link,
 } from "@mui/material";
 
 const LoginForm = () => {
@@ -68,7 +69,7 @@ const LoginForm = () => {
                     margin="normal"
                     required
                     fullWidth
-                    label="E-mail ou username"
+                    label="E-mail"
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -106,6 +107,9 @@ const LoginForm = () => {
                 >
                     Entrar
                 </Button>
+                <Link href="/register" underline="always" color="inherit">
+                    {<Typography>Realizar cadastro!</Typography>}
+                </Link>
             </Box>
         </Paper>
     );

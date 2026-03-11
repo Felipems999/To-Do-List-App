@@ -2,7 +2,7 @@ import { useAuth } from "../contexts/authContext";
 import { AppBar, Box, Button, Link, Toolbar, Typography } from "@mui/material";
 
 const HeaderMenu = () => {
-    const { logout } = useAuth();
+    const { user, logout } = useAuth();
 
     return (
         <AppBar position="sticky">
@@ -16,6 +16,9 @@ const HeaderMenu = () => {
                 >
                     {<Typography variant="h6">TO DO LIST</Typography>}
                 </Link>
+                <Typography variant="h4">
+                    To-do list de {user?.username}
+                </Typography>
                 <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                     <Button color="inherit" onClick={logout}>
                         Sair

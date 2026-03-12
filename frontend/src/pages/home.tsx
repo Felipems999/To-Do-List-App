@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import {
+    Fab,
     Container,
     Typography,
     Box,
@@ -10,13 +11,18 @@ import {
     IconButton,
     Checkbox,
 } from "@mui/material";
+import TaskForm from "../components/taskForm";
 import DeleteIcon from "@mui/icons-material/Delete";
 import serviceAPI from "../services/mainService";
-import type { Task } from "../type/task";
+import type { Task, Category } from "../type/task";
 import HeaderMenu from "../components/headerMenu";
 
 const HomePage = () => {
     const [tasks, setTasks] = useState<Task[]>([]);
+
+    const [categories, setCategories] = useState<Category[]>([]);
+
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
 
     const fetchTasks = async () => {
         try {
@@ -30,6 +36,28 @@ const HomePage = () => {
     useEffect(() => {
         fetchTasks();
     }, []);
+
+    const fetchData = async () => {
+        try {
+            const [taskRes, catRes] = await Promise.all([
+                serviceAPI.get<Task[]>("/tasks/tasks/"),
+                serviceAPI.get<Category[]>("/tasks/categories/"),
+            ]);
+            setTasks(taskRes.data);
+            setCategories(catRes.data);
+        } catch (error) {
+            console.error("Erro ao carregar dados", error);
+        }
+    };
+
+    const handleAddTask = async (newTask: Partial<Task>) => {
+        try {
+            await serviceAPI.post("/tasks/tasks/", newTask);
+            fetchData();
+        } catch (error) {
+            console.error("Erro ao criar tarefa", error);
+        }
+    };
 
     return (
         <Box
@@ -108,6 +136,25 @@ const HomePage = () => {
                         )}
                     </List>
                 </Paper>
+                <Fab
+                    color="primary"
+                    aria-label="add"
+                    sx={{
+                        position: "fixed",
+                        bottom: 32,
+                        right: 32,
+                        fontSize: 40,
+                    }}
+                    onClick={() => setIsDialogOpen(true)}
+                >
+                    +
+                </Fab>
+                <TaskForm
+                    open={isDialogOpen}
+                    onClose={() => setIsDialogOpen(false)}
+                    onSave={handleAddTask}
+                    categories={categories}
+                />
             </Container>
         </Box>
     );

@@ -10,12 +10,14 @@ import {
 import Edit from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import type { TasksListType } from "../type/task";
+import { Share } from "@mui/icons-material";
 
 const TasksList = ({
     tasksList,
     handleOpenEditForm,
     handleDeleteTask,
     handleCompleteTask,
+    handleShareWith,
 }: TasksListType) => {
     return (
         <Paper elevation={2} sx={{ borderRadius: 2, overflow: "hidden" }}>
@@ -37,6 +39,14 @@ const TasksList = ({
                             key={task.id}
                             secondaryAction={
                                 <Box>
+                                    <IconButton
+                                        edge="end"
+                                        aria-label="edit"
+                                        onClick={() => handleShareWith(task.id)}
+                                        sx={{ mr: 1 }}
+                                    >
+                                        <Share />
+                                    </IconButton>
                                     <IconButton
                                         edge="end"
                                         aria-label="edit"

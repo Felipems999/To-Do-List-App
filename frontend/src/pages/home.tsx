@@ -12,8 +12,15 @@ import {
     SpeedDial,
     SpeedDialIcon,
     SpeedDialAction,
+    Tab,
+    Tabs,
+    FormControl,
+    InputLabel,
+    Select,
+    MenuItem,
 } from "@mui/material";
 import AssignmentIcon from "@mui/icons-material/Assignment";
+import Edit from "@mui/icons-material/Edit";
 import FolderIcon from "@mui/icons-material/Folder";
 import TaskForm from "../components/taskForm";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -29,7 +36,30 @@ const HomePage = () => {
 
     const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
 
+    const [taskToEdit, setTaskToEdit] = useState<Task | null>(null);
+
     const [isCategoryFormOpen, setIsCategoryFormOpen] = useState(false);
+
+    const [selectedCategory, setSelectedCategory] = useState<number | "all">(
+        "all",
+    );
+
+    const [statusFilter, setStatusFilter] = useState<
+        "all" | "pending" | "completed"
+    >("all");
+    const filteredTasks = tasks.filter((task) => {
+        const matchesCategory =
+            selectedCategory === "all" || task.category === selectedCategory;
+
+        const matchesStatus =
+            statusFilter === "all"
+                ? true
+                : statusFilter === "completed"
+                  ? task.is_completed
+                  : !task.is_completed;
+
+        return matchesCategory && matchesStatus;
+    });
 
     useEffect(() => {
         fetchData();
@@ -48,22 +78,57 @@ const HomePage = () => {
         }
     };
 
-    const handleAddTask = async (newTask: Partial<Task>) => {
+    const handleSaveTask = async (task: Partial<Task>) => {
         try {
-            await serviceAPI.post("/tasks/tasks/", newTask);
+            if (taskToEdit) {
+                await serviceAPI.put(`/tasks/tasks/${taskToEdit.id}/`, task);
+            } else {
+                await serviceAPI.post("/tasks/tasks/", task);
+            }
             fetchData();
+            handleCloseDialog();
         } catch (error) {
-            console.error("Erro ao criar tarefa", error);
+            console.error("Erro ao salvar tarefa:", error);
         }
     };
 
-    const handleAddCategory = async (name: string) => {
+    const handleSaveCategory = async (name: string) => {
         try {
             await serviceAPI.post("/tasks/categories/", { name });
             fetchData();
         } catch (error) {
             console.error("Erro ao criar categoria", error);
         }
+    };
+
+    const handleCompleteTask = async (task: Task) => {
+        try {
+            await serviceAPI.patch(`/tasks/tasks/${task.id}/`, {
+                is_completed: !task.is_completed,
+            });
+            fetchData();
+        } catch (error) {
+            console.error("Erro ao atualizar tarefa", error);
+        }
+    };
+
+    const handleDeleteTask = async (task: Task) => {
+        try {
+            await serviceAPI.delete(`/tasks/tasks/${task.id}/`);
+            fetchData();
+        } catch (error) {
+            console.error("Erro ao deletar tarefa", error);
+        }
+    };
+
+    const handleOpenEditDialog = (task: Task) => {
+        setTaskToEdit(task);
+        setIsTaskFormOpen(true);
+    };
+
+    const handleCloseDialog = () => {
+        setIsTaskFormOpen(false);
+        setTaskToEdit(null);
     };
 
     return (
@@ -91,10 +156,52 @@ const HomePage = () => {
                     Minhas Tarefas
                 </Typography>
 
+                <Box
+                    sx={{
+                        mb: 3,
+                        display: "flex",
+                        justifyContent: "flex-end",
+                    }}
+                >
+                    <FormControl size="small" sx={{ minWidth: 200 }}>
+                        <InputLabel>Situação</InputLabel>
+                        <Select
+                            value={statusFilter}
+                            label="Situação"
+                            onChange={(e) =>
+                                setStatusFilter(e.target.value as any)
+                            }
+                        >
+                            <MenuItem value="all">Todas as tarefas</MenuItem>
+                            <MenuItem value="pending">Pendentes</MenuItem>
+                            <MenuItem value="completed">Concluídas</MenuItem>
+                        </Select>
+                    </FormControl>
+                </Box>
+
                 <Paper
                     elevation={2}
                     sx={{ borderRadius: 2, overflow: "hidden" }}
                 >
+                    <Paper sx={{ mb: 3, borderRadius: 2 }}>
+                        <Tabs
+                            value={selectedCategory}
+                            onChange={(_, newValue) =>
+                                setSelectedCategory(newValue)
+                            }
+                            variant="scrollable"
+                            scrollButtons="auto"
+                        >
+                            <Tab label="Todas" value="all" />
+                            {categories.map((cat) => (
+                                <Tab
+                                    key={cat.id}
+                                    label={cat.name}
+                                    value={cat.id}
+                                />
+                            ))}
+                        </Tabs>
+                    </Paper>
                     <List sx={{ p: 0 }}>
                         {tasks.length === 0 ? (
                             <ListItem>
@@ -108,22 +215,40 @@ const HomePage = () => {
                                 />
                             </ListItem>
                         ) : (
-                            tasks.map((task) => (
+                            filteredTasks.map((task) => (
                                 <ListItem
                                     key={task.id}
                                     secondaryAction={
-                                        <IconButton
-                                            edge="end"
-                                            aria-label="delete"
-                                            color="error"
-                                        >
-                                            <DeleteIcon />
-                                        </IconButton>
+                                        <Box>
+                                            <IconButton
+                                                edge="end"
+                                                aria-label="edit"
+                                                onClick={() =>
+                                                    handleOpenEditDialog(task)
+                                                }
+                                                sx={{ mr: 1 }}
+                                            >
+                                                <Edit />
+                                            </IconButton>
+                                            <IconButton
+                                                edge="end"
+                                                aria-label="delete"
+                                                color="error"
+                                                onClick={() =>
+                                                    handleDeleteTask(task)
+                                                }
+                                            >
+                                                <DeleteIcon />
+                                            </IconButton>
+                                        </Box>
                                     }
                                     divider
                                 >
                                     <Checkbox
                                         checked={task.is_completed}
+                                        onChange={() =>
+                                            handleCompleteTask(task)
+                                        }
                                         color="primary"
                                     />
                                     <ListItemText
@@ -174,13 +299,14 @@ const HomePage = () => {
                 <TaskForm
                     open={isTaskFormOpen}
                     onClose={() => setIsTaskFormOpen(false)}
-                    onSave={handleAddTask}
+                    onSave={handleSaveTask}
                     categories={categories}
+                    taskToEdit={taskToEdit}
                 />
                 <CategoryForm
                     open={isCategoryFormOpen}
                     onClose={() => setIsCategoryFormOpen(false)}
-                    onSave={handleAddCategory}
+                    onSave={handleSaveCategory}
                 />
             </Container>
         </Box>

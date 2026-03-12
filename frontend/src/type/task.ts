@@ -3,7 +3,7 @@ export interface Task {
   title: string;
   description: string;
   is_completed: boolean;
-  categories: Category[];
+  category: Category[];
 }
 
 export interface TaskFormProps {

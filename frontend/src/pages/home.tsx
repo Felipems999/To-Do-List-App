@@ -1,33 +1,21 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import {
     Container,
     Typography,
     Box,
-    Paper,
-    List,
-    ListItem,
-    ListItemText,
-    IconButton,
-    Checkbox,
     SpeedDial,
     SpeedDialIcon,
     SpeedDialAction,
-    Tab,
-    Tabs,
-    FormControl,
-    InputLabel,
-    Select,
-    MenuItem,
 } from "@mui/material";
 import AssignmentIcon from "@mui/icons-material/Assignment";
-import Edit from "@mui/icons-material/Edit";
 import FolderIcon from "@mui/icons-material/Folder";
 import TaskForm from "../components/taskForm";
-import DeleteIcon from "@mui/icons-material/Delete";
 import serviceAPI from "../services/mainService";
 import type { Task, Category } from "../type/task";
 import HeaderMenu from "../components/headerMenu";
 import CategoryForm from "../components/categoryForm";
+import FilterStatus from "../components/filterStatus";
+import TasksList from "../components/tasksList";
 
 const HomePage = () => {
     const [tasks, setTasks] = useState<Task[]>([]);
@@ -40,27 +28,16 @@ const HomePage = () => {
 
     const [isCategoryFormOpen, setIsCategoryFormOpen] = useState(false);
 
-    const [selectedCategory, setSelectedCategory] = useState<number | "all">(
-        "all",
-    );
+    const [statusFilter, setStatusFilter] = useState<string | number>("all");
+    const filteredTasks = useMemo(() => {
+        return tasks.filter((task) => {
+            if (statusFilter === "all") return true;
+            if (statusFilter === "completed") return task.is_completed;
+            if (statusFilter === "pending") return !task.is_completed;
 
-    const [statusFilter, setStatusFilter] = useState<
-        "all" | "pending" | "completed"
-    >("all");
-    const filteredTasks = tasks.filter((task) => {
-        const matchesCategory =
-            selectedCategory === "all" || task.category === selectedCategory;
-
-        const matchesStatus =
-            statusFilter === "all"
-                ? true
-                : statusFilter === "completed"
-                  ? task.is_completed
-                  : !task.is_completed;
-
-        return matchesCategory && matchesStatus;
-    });
-
+            return task.category === statusFilter;
+        });
+    }, [tasks, statusFilter]);
     useEffect(() => {
         fetchData();
     }, []);
@@ -156,118 +133,20 @@ const HomePage = () => {
                     Minhas Tarefas
                 </Typography>
 
-                <Box
-                    sx={{
-                        mb: 3,
-                        display: "flex",
-                        justifyContent: "flex-end",
-                    }}
-                >
-                    <FormControl size="small" sx={{ minWidth: 200 }}>
-                        <InputLabel>Situação</InputLabel>
-                        <Select
-                            value={statusFilter}
-                            label="Situação"
-                            onChange={(e) =>
-                                setStatusFilter(e.target.value as any)
-                            }
-                        >
-                            <MenuItem value="all">Todas as tarefas</MenuItem>
-                            <MenuItem value="pending">Pendentes</MenuItem>
-                            <MenuItem value="completed">Concluídas</MenuItem>
-                        </Select>
-                    </FormControl>
-                </Box>
+                <FilterStatus
+                    statusFilter={statusFilter}
+                    setStatusFilter={(e) =>
+                        setStatusFilter(e.target.value as any)
+                    }
+                    categories={categories}
+                />
 
-                <Paper
-                    elevation={2}
-                    sx={{ borderRadius: 2, overflow: "hidden" }}
-                >
-                    <Paper sx={{ mb: 3, borderRadius: 2 }}>
-                        <Tabs
-                            value={selectedCategory}
-                            onChange={(_, newValue) =>
-                                setSelectedCategory(newValue)
-                            }
-                            variant="scrollable"
-                            scrollButtons="auto"
-                        >
-                            <Tab label="Todas" value="all" />
-                            {categories.map((cat) => (
-                                <Tab
-                                    key={cat.id}
-                                    label={cat.name}
-                                    value={cat.id}
-                                />
-                            ))}
-                        </Tabs>
-                    </Paper>
-                    <List sx={{ p: 0 }}>
-                        {tasks.length === 0 ? (
-                            <ListItem>
-                                <ListItemText
-                                    primary="Nenhuma tarefa encontrada."
-                                    sx={{
-                                        textAlign: "center",
-                                        py: 3,
-                                        color: "text.secondary",
-                                    }}
-                                />
-                            </ListItem>
-                        ) : (
-                            filteredTasks.map((task) => (
-                                <ListItem
-                                    key={task.id}
-                                    secondaryAction={
-                                        <Box>
-                                            <IconButton
-                                                edge="end"
-                                                aria-label="edit"
-                                                onClick={() =>
-                                                    handleOpenEditDialog(task)
-                                                }
-                                                sx={{ mr: 1 }}
-                                            >
-                                                <Edit />
-                                            </IconButton>
-                                            <IconButton
-                                                edge="end"
-                                                aria-label="delete"
-                                                color="error"
-                                                onClick={() =>
-                                                    handleDeleteTask(task)
-                                                }
-                                            >
-                                                <DeleteIcon />
-                                            </IconButton>
-                                        </Box>
-                                    }
-                                    divider
-                                >
-                                    <Checkbox
-                                        checked={task.is_completed}
-                                        onChange={() =>
-                                            handleCompleteTask(task)
-                                        }
-                                        color="primary"
-                                    />
-                                    <ListItemText
-                                        primary={task.title}
-                                        secondary={task.description}
-                                        sx={{
-                                            textDecoration: task.is_completed
-                                                ? "line-through"
-                                                : "none",
-                                            color: task.is_completed
-                                                ? "text.secondary"
-                                                : "text.primary",
-                                        }}
-                                    />
-                                </ListItem>
-                            ))
-                        )}
-                    </List>
-                </Paper>
+                <TasksList
+                    tasksList={filteredTasks}
+                    handleCompleteTask={handleCompleteTask}
+                    handleDeleteTask={handleDeleteTask}
+                    handleOpenEditForm={handleOpenEditDialog}
+                />
 
                 <SpeedDial
                     ariaLabel="Adicionar novo item"

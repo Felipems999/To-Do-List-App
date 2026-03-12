@@ -6,6 +6,13 @@ export interface Task {
   category: Category[];
 }
 
+export interface TasksListType {
+  tasksList: Task[];
+  handleOpenEditForm: (value: Task) => void;
+  handleDeleteTask: (value: Task) => void;
+  handleCompleteTask: (value: Task) => void;
+}
+
 export interface TaskFormProps {
   open: boolean;
   onClose: () => void;

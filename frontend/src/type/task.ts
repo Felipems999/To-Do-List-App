@@ -3,4 +3,32 @@ export interface Task {
   title: string;
   description: string;
   is_completed: boolean;
+  category: Category[];
+}
+
+export interface TasksListType {
+  tasksList: Task[];
+  handleOpenEditForm: (value: Task) => void;
+  handleDeleteTask: (value: Task) => void;
+  handleCompleteTask: (value: Task) => void;
+}
+
+export interface TaskFormProps {
+  open: boolean;
+  onClose: () => void;
+  onSave: (task: Partial<Task>) => void;
+  categories: Category[];
+  taskToEdit?: Task | null;
+}
+
+export interface Category {
+  id: number;
+  name: string;
+  color?: string;
+}
+
+export interface CategoryFormProps {
+  open: boolean;
+  onClose: () => void;
+  onSave: (name: string) => void;
 }

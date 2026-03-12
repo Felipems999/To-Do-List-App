@@ -1,35 +1,112 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import {
     Container,
     Typography,
     Box,
-    Paper,
-    List,
-    ListItem,
-    ListItemText,
-    IconButton,
-    Checkbox,
+    SpeedDial,
+    SpeedDialIcon,
+    SpeedDialAction,
 } from "@mui/material";
-import DeleteIcon from "@mui/icons-material/Delete";
+import AssignmentIcon from "@mui/icons-material/Assignment";
+import FolderIcon from "@mui/icons-material/Folder";
+import TaskForm from "../components/taskForm";
 import serviceAPI from "../services/mainService";
-import type { Task } from "../type/task";
+import type { Task, Category } from "../type/task";
 import HeaderMenu from "../components/headerMenu";
+import CategoryForm from "../components/categoryForm";
+import FilterStatus from "../components/filterStatus";
+import TasksList from "../components/tasksList";
 
 const HomePage = () => {
     const [tasks, setTasks] = useState<Task[]>([]);
 
-    const fetchTasks = async () => {
+    const [categories, setCategories] = useState<Category[]>([]);
+
+    const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
+
+    const [taskToEdit, setTaskToEdit] = useState<Task | null>(null);
+
+    const [isCategoryFormOpen, setIsCategoryFormOpen] = useState(false);
+
+    const [statusFilter, setStatusFilter] = useState<string | number>("all");
+    const filteredTasks = useMemo(() => {
+        return tasks.filter((task) => {
+            if (statusFilter === "all") return true;
+            if (statusFilter === "completed") return task.is_completed;
+            if (statusFilter === "pending") return !task.is_completed;
+
+            return task.category === statusFilter;
+        });
+    }, [tasks, statusFilter]);
+    useEffect(() => {
+        fetchData();
+    }, []);
+
+    const fetchData = async () => {
         try {
-            const response = await serviceAPI.get<Task[]>("/tasks/tasks/");
-            setTasks(response.data);
+            const [taskRes, catRes] = await Promise.all([
+                serviceAPI.get<Task[]>("/tasks/tasks/"),
+                serviceAPI.get<Category[]>("/tasks/categories/"),
+            ]);
+            setTasks(taskRes.data);
+            setCategories(catRes.data);
         } catch (error) {
-            console.error("Erro ao carregar tarefas", error);
+            console.error("Erro ao carregar dados", error);
         }
     };
 
-    useEffect(() => {
-        fetchTasks();
-    }, []);
+    const handleSaveTask = async (task: Partial<Task>) => {
+        try {
+            if (taskToEdit) {
+                await serviceAPI.put(`/tasks/tasks/${taskToEdit.id}/`, task);
+            } else {
+                await serviceAPI.post("/tasks/tasks/", task);
+            }
+            fetchData();
+            handleCloseDialog();
+        } catch (error) {
+            console.error("Erro ao salvar tarefa:", error);
+        }
+    };
+
+    const handleSaveCategory = async (name: string) => {
+        try {
+            await serviceAPI.post("/tasks/categories/", { name });
+            fetchData();
+        } catch (error) {
+            console.error("Erro ao criar categoria", error);
+        }
+    };
+
+    const handleCompleteTask = async (task: Task) => {
+        try {
+            await serviceAPI.patch(`/tasks/tasks/${task.id}/`, {
+                is_completed: !task.is_completed,
+            });
+            fetchData();
+        } catch (error) {
+            console.error("Erro ao atualizar tarefa", error);
+        }
+    };
+
+    const handleDeleteTask = async (task: Task) => {
+        try {
+            await serviceAPI.delete(`/tasks/tasks/${task.id}/`);
+            fetchData();
+        } catch (error) {
+            console.error("Erro ao deletar tarefa", error);
+        }
+    };
+
+    const handleOpenEditDialog = (task: Task) => {
+        setTaskToEdit(task);
+        setIsTaskFormOpen(true);
+    };
+
+    const handleCloseDialog = () => {
+        setIsTaskFormOpen(false);
+        setTaskToEdit(null);
+    };
 
     return (
         <Box
@@ -56,58 +133,60 @@ const HomePage = () => {
                     Minhas Tarefas
                 </Typography>
 
-                <Paper
-                    elevation={2}
-                    sx={{ borderRadius: 2, overflow: "hidden" }}
+                <FilterStatus
+                    statusFilter={statusFilter}
+                    setStatusFilter={(e) =>
+                        setStatusFilter(e.target.value as any)
+                    }
+                    categories={categories}
+                />
+
+                <TasksList
+                    tasksList={filteredTasks}
+                    handleCompleteTask={handleCompleteTask}
+                    handleDeleteTask={handleDeleteTask}
+                    handleOpenEditForm={handleOpenEditDialog}
+                />
+
+                <SpeedDial
+                    ariaLabel="Adicionar novo item"
+                    sx={{ position: "fixed", bottom: 32, right: 32 }}
+                    icon={<SpeedDialIcon />}
                 >
-                    <List sx={{ p: 0 }}>
-                        {tasks.length === 0 ? (
-                            <ListItem>
-                                <ListItemText
-                                    primary="Nenhuma tarefa encontrada."
-                                    sx={{
-                                        textAlign: "center",
-                                        py: 3,
-                                        color: "text.secondary",
-                                    }}
-                                />
-                            </ListItem>
-                        ) : (
-                            tasks.map((task) => (
-                                <ListItem
-                                    key={task.id}
-                                    secondaryAction={
-                                        <IconButton
-                                            edge="end"
-                                            aria-label="delete"
-                                            color="error"
-                                        >
-                                            <DeleteIcon />
-                                        </IconButton>
-                                    }
-                                    divider
-                                >
-                                    <Checkbox
-                                        checked={task.is_completed}
-                                        color="primary"
-                                    />
-                                    <ListItemText
-                                        primary={task.title}
-                                        secondary={task.description}
-                                        sx={{
-                                            textDecoration: task.is_completed
-                                                ? "line-through"
-                                                : "none",
-                                            color: task.is_completed
-                                                ? "text.secondary"
-                                                : "text.primary",
-                                        }}
-                                    />
-                                </ListItem>
-                            ))
-                        )}
-                    </List>
-                </Paper>
+                    <SpeedDialAction
+                        icon={<FolderIcon />}
+                        slotProps={{
+                            tooltip: {
+                                title: "Nova Categoria",
+                                open: true,
+                            },
+                        }}
+                        onClick={() => setIsCategoryFormOpen(true)}
+                    />
+                    <SpeedDialAction
+                        icon={<AssignmentIcon />}
+                        slotProps={{
+                            tooltip: {
+                                title: "Nova Tarefa",
+                                open: true,
+                            },
+                        }}
+                        onClick={() => setIsTaskFormOpen(true)}
+                    />
+                </SpeedDial>
+
+                <TaskForm
+                    open={isTaskFormOpen}
+                    onClose={() => setIsTaskFormOpen(false)}
+                    onSave={handleSaveTask}
+                    categories={categories}
+                    taskToEdit={taskToEdit}
+                />
+                <CategoryForm
+                    open={isCategoryFormOpen}
+                    onClose={() => setIsCategoryFormOpen(false)}
+                    onSave={handleSaveCategory}
+                />
             </Container>
         </Box>
     );

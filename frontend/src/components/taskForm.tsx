@@ -8,15 +8,7 @@ import {
     Button,
     MenuItem,
 } from "@mui/material";
-import type { Task, Category } from "../type/task";
-
-interface TaskFormProps {
-    open: boolean;
-    onClose: () => void;
-    onSave: (task: Partial<Task>) => void;
-    categories: Category[];
-    taskToEdit?: Task | null;
-}
+import type { TaskFormProps } from "../type/task";
 
 const TaskForm = ({
     open,

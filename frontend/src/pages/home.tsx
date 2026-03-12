@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import {
-    Fab,
     Container,
     Typography,
     Box,
@@ -10,31 +9,30 @@ import {
     ListItemText,
     IconButton,
     Checkbox,
+    SpeedDial,
+    SpeedDialIcon,
+    SpeedDialAction,
 } from "@mui/material";
+import AssignmentIcon from "@mui/icons-material/Assignment";
+import FolderIcon from "@mui/icons-material/Folder";
 import TaskForm from "../components/taskForm";
 import DeleteIcon from "@mui/icons-material/Delete";
 import serviceAPI from "../services/mainService";
 import type { Task, Category } from "../type/task";
 import HeaderMenu from "../components/headerMenu";
+import CategoryForm from "../components/categoryForm";
 
 const HomePage = () => {
     const [tasks, setTasks] = useState<Task[]>([]);
 
     const [categories, setCategories] = useState<Category[]>([]);
 
-    const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
 
-    const fetchTasks = async () => {
-        try {
-            const response = await serviceAPI.get<Task[]>("/tasks/tasks/");
-            setTasks(response.data);
-        } catch (error) {
-            console.error("Erro ao carregar tarefas", error);
-        }
-    };
+    const [isCategoryFormOpen, setIsCategoryFormOpen] = useState(false);
 
     useEffect(() => {
-        fetchTasks();
+        fetchData();
     }, []);
 
     const fetchData = async () => {
@@ -56,6 +54,15 @@ const HomePage = () => {
             fetchData();
         } catch (error) {
             console.error("Erro ao criar tarefa", error);
+        }
+    };
+
+    const handleAddCategory = async (name: string) => {
+        try {
+            await serviceAPI.post("/tasks/categories/", { name });
+            fetchData();
+        } catch (error) {
+            console.error("Erro ao criar categoria", error);
         }
     };
 
@@ -136,24 +143,44 @@ const HomePage = () => {
                         )}
                     </List>
                 </Paper>
-                <Fab
-                    color="primary"
-                    aria-label="add"
-                    sx={{
-                        position: "fixed",
-                        bottom: 32,
-                        right: 32,
-                        fontSize: 40,
-                    }}
-                    onClick={() => setIsDialogOpen(true)}
+
+                <SpeedDial
+                    ariaLabel="Adicionar novo item"
+                    sx={{ position: "fixed", bottom: 32, right: 32 }}
+                    icon={<SpeedDialIcon />}
                 >
-                    +
-                </Fab>
+                    <SpeedDialAction
+                        icon={<FolderIcon />}
+                        slotProps={{
+                            tooltip: {
+                                title: "Nova Categoria",
+                                open: true,
+                            },
+                        }}
+                        onClick={() => setIsCategoryFormOpen(true)}
+                    />
+                    <SpeedDialAction
+                        icon={<AssignmentIcon />}
+                        slotProps={{
+                            tooltip: {
+                                title: "Nova Tarefa",
+                                open: true,
+                            },
+                        }}
+                        onClick={() => setIsTaskFormOpen(true)}
+                    />
+                </SpeedDial>
+
                 <TaskForm
-                    open={isDialogOpen}
-                    onClose={() => setIsDialogOpen(false)}
+                    open={isTaskFormOpen}
+                    onClose={() => setIsTaskFormOpen(false)}
                     onSave={handleAddTask}
                     categories={categories}
+                />
+                <CategoryForm
+                    open={isCategoryFormOpen}
+                    onClose={() => setIsCategoryFormOpen(false)}
+                    onSave={handleAddCategory}
                 />
             </Container>
         </Box>

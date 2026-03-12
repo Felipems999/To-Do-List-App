@@ -108,6 +108,22 @@ const HomePage = () => {
         setTaskToEdit(null);
     };
 
+    const handleShareWith = async (taskId: number) => {
+        const email = window.prompt(
+            "Digite o e-mail do usuário para compartilhar:",
+        );
+
+        if (!email) return;
+
+        try {
+            await serviceAPI.post(`/tasks/tasks/${taskId}/share/`, { email });
+            alert("Compartilhado com sucesso!");
+        } catch (error) {
+            console.error("Erro ao compartilhar no backend", error);
+            alert("Erro: Verifique se o e-mail está correto.");
+        }
+    };
+
     return (
         <Box
             sx={{
@@ -146,6 +162,7 @@ const HomePage = () => {
                     handleCompleteTask={handleCompleteTask}
                     handleDeleteTask={handleDeleteTask}
                     handleOpenEditForm={handleOpenEditDialog}
+                    handleShareWith={handleShareWith}
                 />
 
                 <SpeedDial

@@ -23,7 +23,7 @@ jobs:
             - name: Create .env
               run: |
                   cd backend
-                  cp .env.example .env
+                  cp .env-example .env
             - name: Run Pytest
               run: |
                   pytest

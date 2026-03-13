@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import {
     Container,
     Typography,
@@ -6,6 +6,8 @@ import {
     SpeedDial,
     SpeedDialIcon,
     SpeedDialAction,
+    Pagination,
+    Stack,
 } from "@mui/material";
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import FolderIcon from "@mui/icons-material/Folder";
@@ -19,40 +21,57 @@ import TasksList from "../components/tasksList";
 
 const HomePage = () => {
     const [tasks, setTasks] = useState<Task[]>([]);
-
     const [categories, setCategories] = useState<Category[]>([]);
-
     const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
-
     const [taskToEdit, setTaskToEdit] = useState<Task | null>(null);
-
     const [isCategoryFormOpen, setIsCategoryFormOpen] = useState(false);
 
     const [statusFilter, setStatusFilter] = useState<string | number>("all");
-    const filteredTasks = useMemo(() => {
-        return tasks.filter((task) => {
-            if (statusFilter === "all") return true;
-            if (statusFilter === "completed") return task.is_completed;
-            if (statusFilter === "pending") return !task.is_completed;
-
-            return task.category === statusFilter;
-        });
-    }, [tasks, statusFilter]);
-    useEffect(() => {
-        fetchData();
-    }, []);
+    const [page, setPage] = useState(1);
+    const [totalCount, setTotalCount] = useState(0);
+    const pageSize = 10;
 
     const fetchData = async () => {
         try {
+            const params = new URLSearchParams();
+            params.append("page", page.toString());
+
+            if (statusFilter === "completed") {
+                params.append("is_completed", "true");
+            } else if (statusFilter === "pending") {
+                params.append("is_completed", "false");
+            } else if (statusFilter !== "all") {
+                params.append("category", statusFilter.toString());
+            }
+
             const [taskRes, catRes] = await Promise.all([
-                serviceAPI.get<Task[]>("/tasks/tasks/"),
+                serviceAPI.get<{ count: number; results: Task[] }>(
+                    `/tasks/tasks/?${params.toString()}`,
+                ),
                 serviceAPI.get<Category[]>("/tasks/categories/"),
             ]);
-            setTasks(taskRes.data);
+
+            setTasks(taskRes.data.results);
+            setTotalCount(taskRes.data.count);
             setCategories(catRes.data);
         } catch (error) {
             console.error("Erro ao carregar dados", error);
         }
+    };
+
+    useEffect(() => {
+        fetchData();
+    }, [page, statusFilter]);
+
+    useEffect(() => {
+        setPage(1);
+    }, [statusFilter]);
+
+    const handlePageChange = (
+        _event: React.ChangeEvent<unknown>,
+        value: number,
+    ) => {
+        setPage(value);
     };
 
     const handleSaveTask = async (task: Partial<Task>) => {
@@ -112,7 +131,6 @@ const HomePage = () => {
         const email = window.prompt(
             "Digite o e-mail do usuário para compartilhar:",
         );
-
         if (!email) return;
 
         try {
@@ -143,6 +161,7 @@ const HomePage = () => {
                     mt: 4,
                     mb: 4,
                     flexGrow: 1,
+                    pb: 10,
                 }}
             >
                 <Typography variant="h4" gutterBottom fontWeight="bold">
@@ -158,12 +177,24 @@ const HomePage = () => {
                 />
 
                 <TasksList
-                    tasksList={filteredTasks}
+                    tasksList={tasks}
                     handleCompleteTask={handleCompleteTask}
                     handleDeleteTask={handleDeleteTask}
                     handleOpenEditForm={handleOpenEditDialog}
                     handleShareWith={handleShareWith}
                 />
+
+                {totalCount > pageSize && (
+                    <Stack spacing={2} sx={{ mt: 4, alignItems: "center" }}>
+                        <Pagination
+                            count={Math.ceil(totalCount / pageSize)}
+                            page={page}
+                            onChange={handlePageChange}
+                            color="primary"
+                            shape="rounded"
+                        />
+                    </Stack>
+                )}
 
                 <SpeedDial
                     ariaLabel="Adicionar novo item"
@@ -173,20 +204,14 @@ const HomePage = () => {
                     <SpeedDialAction
                         icon={<FolderIcon />}
                         slotProps={{
-                            tooltip: {
-                                title: "Nova Categoria",
-                                open: true,
-                            },
+                            tooltip: { title: "Nova Categoria", open: true },
                         }}
                         onClick={() => setIsCategoryFormOpen(true)}
                     />
                     <SpeedDialAction
                         icon={<AssignmentIcon />}
                         slotProps={{
-                            tooltip: {
-                                title: "Nova Tarefa",
-                                open: true,
-                            },
+                            tooltip: { title: "Nova Tarefa", open: true },
                         }}
                         onClick={() => setIsTaskFormOpen(true)}
                     />

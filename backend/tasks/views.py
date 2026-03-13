@@ -1,14 +1,12 @@
-from rest_framework import viewsets, permissions
-from django.db.models import Q
-from .models import Category, Task
-from .serializer import CategorySerializer, TaskSerializer
-from rest_framework import viewsets, status
+from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from .models import Task
 from django.db import models
-from .permissions import havePermission
 from django.contrib.auth import get_user_model
+from .models import Category, Task
+from .serializer import CategorySerializer, TaskSerializer
+from .permissions import havePermission
+from .pagination import StandardResultsSetPagination
 
 User = get_user_model()
 
@@ -27,13 +25,26 @@ class CategoryViewSet(viewsets.ModelViewSet):
 class TaskViewSet(viewsets.ModelViewSet):
     serializer_class = TaskSerializer
     permission_classes = [havePermission]
+    pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
         user = self.request.user
 
-        return Task.objects.filter(
+        queryset = Task.objects.filter(
             models.Q(owner=user) | models.Q(shared_with=user)
         ).distinct()
+
+        is_completed = self.request.query_params.get("is_completed")
+        category_id = self.request.query_params.get("category")
+
+        if is_completed is not None:
+            is_completed_bool = is_completed.lower() == "true"
+            queryset = queryset.filter(is_completed=is_completed_bool)
+
+        if category_id is not None:
+            queryset = queryset.filter(category_id=category_id)
+
+        return queryset.order_by("-id")
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
@@ -42,8 +53,6 @@ class TaskViewSet(viewsets.ModelViewSet):
     def share(self, request, pk=None):
         task = self.get_object()
         email = request.data.get("email")
-
-        User = get_user_model()
 
         try:
             user_to_share = User.objects.get(email=email)

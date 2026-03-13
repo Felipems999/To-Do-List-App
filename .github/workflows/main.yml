@@ -32,7 +32,6 @@ jobs:
               run: |
                   cat <<EOF > .env
                   API_KEY=deploy-test-key
-                  GEMINI_KEY=${{ secrets.GEMINI_KEY }}
                   DEBUG=True
                   EOF
 

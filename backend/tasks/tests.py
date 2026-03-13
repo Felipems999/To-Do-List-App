@@ -1,4 +1,5 @@
 import pytest
+from unittest.mock import patch
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 from tasks.models import Task, Category
@@ -53,5 +54,17 @@ class TestCategorySecurity:
 
 
 @pytest.mark.django_db
+@patch("tasks.views.Client")
 def test_suggest_subtasks_mocked(mock_client_class, auth_client):
-    pass
+    mock_instance = mock_client_class.return_value
+    mock_instance.models.generate_content.return_value.text = (
+        "Passo 1\nPasso 2\nPasso 3"
+    )
+
+    url = reverse("suggest-steps")
+    response = auth_client.post(url, {"title": "Aprender Testes"}, format="json")
+
+    assert response.status_code == 200
+    assert "suggestions" in response.data
+    assert len(response.data["suggestions"]) == 3
+    assert response.data["suggestions"][0] == "Passo 1"

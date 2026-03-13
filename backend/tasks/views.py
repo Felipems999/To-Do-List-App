@@ -16,12 +16,16 @@ load_dotenv()
 
 User = get_user_model()
 
-client = genai.Client(api_key=os.getenv("GEMINI_KEY", "dummy_key"))
-
 
 @api_view(["POST"])
 @permission_classes([permissions.IsAuthenticated])
 def suggest_subtasks(request):
+    api_key = os.getenv("GEMINI_KEY")
+    if not api_key:
+        return Response({"error": "API Key não configurada"}, status=500)
+
+    client = genai.Client(api_key=api_key)
+
     task_title = request.data.get("title")
     if not task_title:
         return Response({"error": "Título é obrigatório"}, status=400)

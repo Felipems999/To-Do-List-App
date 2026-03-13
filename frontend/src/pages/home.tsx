@@ -41,7 +41,7 @@ const HomePage = () => {
             } else if (statusFilter === "pending") {
                 params.append("is_completed", "false");
             } else if (statusFilter !== "all") {
-                params.append("categories", statusFilter.toString());
+                params.append("category", statusFilter.toString());
             }
 
             const taskRes = await serviceAPI.get<{

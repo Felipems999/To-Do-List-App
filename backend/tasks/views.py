@@ -84,7 +84,7 @@ class TaskViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(is_completed=is_completed_bool)
 
         if category_id is not None:
-            queryset = queryset.filter(category_id=category_id)
+            queryset = queryset.filter(categories__id=category_id)
 
         return queryset.order_by("-id")
 

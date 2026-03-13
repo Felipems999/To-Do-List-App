@@ -1,5 +1,6 @@
+import os
 from rest_framework import viewsets, permissions, status
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from django.db import models
 from django.contrib.auth import get_user_model
@@ -7,8 +8,45 @@ from .models import Category, Task
 from .serializer import CategorySerializer, TaskSerializer
 from .permissions import havePermission
 from .pagination import StandardResultsSetPagination
+from dotenv import load_dotenv
+from google import genai
+
+
+load_dotenv()
 
 User = get_user_model()
+
+client = genai.Client(api_key=os.getenv("GEMINI_KEY"))
+
+
+@api_view(["POST"])
+@permission_classes([permissions.IsAuthenticated])
+def suggest_subtasks(request):
+    task_title = request.data.get("title")
+    if not task_title:
+        return Response({"error": "Título é obrigatório"}, status=400)
+
+    try:
+        response = client.models.generate_content(
+            model="gemini-3-flash-preview",
+            contents=f"Com base no objetivo '{task_title}', liste 5 subtarefas curtas e práticas. Retorne apenas a lista, uma por linha, sem números e sem asteriscos.",
+        )
+
+        if response.text:
+            subtasks = [
+                line.strip()
+                for line in response.text.strip().split("\n")
+                if line.strip()
+            ]
+            return Response({"suggestions": subtasks})
+
+        return Response({"error": "A IA retornou uma resposta vazia"}, status=500)
+
+    except Exception as e:
+        print(f"Erro Gemini (Novo SDK): {e}")
+        return Response(
+            {"error": f"Erro na IA: {str(e)}"}, status=status.HTTP_502_BAD_GATEWAY
+        )
 
 
 class CategoryViewSet(viewsets.ModelViewSet):

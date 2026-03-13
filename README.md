@@ -29,7 +29,7 @@ API_KEY="your_django_api_key" <-- You can generate it using the command: python 
 docker-compose up --build
 ```
 
-This will build the Docker images and start the containers for both the frontend and backend. The application will be accessible at http://localhost:3000.
+This will build the Docker images and start the containers for both the frontend and backend. The application will be accessible at http://localhost:5173.
 
 4. Make django migrations:
 
@@ -45,6 +45,6 @@ docker-compose exec backend python3 manage.py makemigrations
 docker-compose exec backend python3 manage.py migrate
 ```
 
-The application will be available at `http://localhost:5173/` and the backend API will be available at `http://localhost:8000/`.
+The application will be available at `http://localhost:5173/` and the backend API will be available at `http://localhost:8000/api/v1`.
 
 Author: Felipe M. S. / GitHub: [Felipems999](https://github.com/Felipems999)

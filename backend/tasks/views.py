@@ -16,7 +16,7 @@ load_dotenv()
 
 User = get_user_model()
 
-client = genai.Client(api_key=os.getenv("GEMINI_KEY"))
+client = genai.Client(api_key=os.getenv("GEMINI_KEY", "dummy_key"))
 
 
 @api_view(["POST"])

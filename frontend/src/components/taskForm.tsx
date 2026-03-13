@@ -17,6 +17,8 @@ import {
     Chip,
 } from "@mui/material";
 import type { Task, TaskFormProps } from "../type/task";
+import serviceAPI from "../services/mainService";
+import { AutoAwesome } from "@mui/icons-material";
 
 const TaskForm = ({
     open,
@@ -30,6 +32,8 @@ const TaskForm = ({
         description: "",
         categories: [],
     });
+
+    const [isLoadingAi, setIsLoadingAi] = useState(false);
 
     useEffect(() => {
         if (open) {
@@ -47,6 +51,30 @@ const TaskForm = ({
     const handleSave = () => {
         onSave(taskData);
         onClose();
+    };
+
+    const handleAiSuggestion = async () => {
+        if (!taskData.title) return alert("Digite um título primeiro!");
+
+        setIsLoadingAi(true);
+        try {
+            const res = await serviceAPI.post("/tasks/suggest-steps/", {
+                title: taskData.title,
+            });
+            const currentDesc = taskData.description || "";
+            const suggestions = res.data.suggestions.join("\n- ");
+
+            setTaskData({
+                ...taskData,
+                description:
+                    `${currentDesc}\n\nSugestões da IA:\n- ${suggestions}`.trim(),
+            });
+        } catch (error) {
+            console.error("Erro ao falar com o Gemini", error);
+            alert("Falha ao gerar sugestões.");
+        } finally {
+            setIsLoadingAi(false);
+        }
     };
 
     return (
@@ -136,6 +164,15 @@ const TaskForm = ({
                         )}
                     </Select>
                 </FormControl>
+                <Button
+                    size="small"
+                    onClick={handleAiSuggestion}
+                    startIcon={<AutoAwesome />}
+                    disabled={isLoadingAi || !taskData.title}
+                    sx={{ alignSelf: "flex-start", mb: 1 }}
+                >
+                    {isLoadingAi ? "Pensando..." : "Sugerir passos com IA"}
+                </Button>
             </DialogContent>
             <DialogActions>
                 <Button onClick={onClose}>Cancelar</Button>

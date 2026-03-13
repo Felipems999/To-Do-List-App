@@ -1,7 +1,9 @@
 Django>=4.2,<5.0
+django-cors-headers
 djangorestframework
 djangorestframework-simplejwt
+google-genai
+python-dotenv
 psycopg2-binary
-django-cors-headers
 pytest
 pytest-django

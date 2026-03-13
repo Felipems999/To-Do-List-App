@@ -10,18 +10,41 @@ This is a task management application that allows users to create, manage, updat
 git clone https://github.com/Felipems999/To-Do-List-App.git
 ```
 
-2. Run the docker-compose.yml file:
+2. Configure your .env file:
 
 ```bash
-docker compose up -d --build
+cp .env.example .env
 ```
 
-or
+next, open the .env file and add your django API_KEY and Gemini API key:
+
+```env
+GEMINI_KEY="your_gemini_api_key" <-- You can get it from https://console.cloud.google.com/apis/credentials
+API_KEY="your_django_api_key" <-- You can generate it using the command: python manage.py shell -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
+```
+
+3. Run the application using Docker Compose:
 
 ```bash
 docker-compose up --build
 ```
 
-3. The application will be available at `http://localhost:5173/` and the backend API will be available at `http://localhost:8000/`.
+This will build the Docker images and start the containers for both the frontend and backend. The application will be accessible at http://localhost:3000.
+
+4. Make django migrations:
+
+```bash
+docker-compose exec backend python manage.py makemigrations
+docker-compose exec backend python manage.py migrate
+```
+
+or
+
+```bash
+docker-compose exec backend python3 manage.py makemigrations
+docker-compose exec backend python3 manage.py migrate
+```
+
+The application will be available at `http://localhost:5173/` and the backend API will be available at `http://localhost:8000/`.
 
 Author: Felipe M. S. / GitHub: [Felipems999](https://github.com/Felipems999)

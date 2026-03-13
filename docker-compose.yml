@@ -19,6 +19,8 @@ services:
             - "8000:8000"
         depends_on:
             - db
+        env_file:
+            - ./backend/.env
         environment:
             - DATABASE_URL=postgres://to_do_list_user:to_do_list_password@db:5432/to_do_list_db
 

@@ -1,5 +1,5 @@
 import pytest
-import os
+from unittest import patch
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 from tasks.models import Task, Category
@@ -53,8 +53,14 @@ class TestCategorySecurity:
         assert len(response.data) == 0
 
 
-@pytest.mark.skipif(
-    os.environ.get("CI") == "true", reason="Pula testes de IA no Pipeline de CI"
-)
-def test_criar_tarefa_com_ia(self):
-    pass
+@patch("genai.Client")
+def test_suggest_subtasks_mocked(mock_client, client):
+    mock_instance = mock_client.return_value
+    mock_instance.models.generate_content.return_value.text = (
+        "Passo 1\nPasso 2\nPasso 3"
+    )
+
+    response = client.post("/api/v1/tasks/suggest-steps/", {"title": "Teste Unitário"})
+
+    assert response.status_code == 200
+    assert len(response.data["suggestions"]) == 3

@@ -30,9 +30,11 @@ jobs:
 
             - name: Create .env
               run: |
-                  cp .env-example .env
-                  echo "SECRET_KEY=django-insecure-test-key-123" >> .env
-                  echo "GEMINI_KEY=${{ secrets.GEMINI_KEY }}" >> .env
+                  cat <<EOF > .env
+                  API_KEY=deploy-test-key
+                  GEMINI_KEY=${{ secrets.GEMINI_KEY }}
+                  DEBUG=True
+                  EOF
 
             - name: Run Pytest
               env:

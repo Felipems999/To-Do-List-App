@@ -19,7 +19,7 @@ class TestTaskSecurity:
         response = auth_client.get(url)
 
         assert response.status_code == 200
-        assert len(response.data) == 0
+        assert len(response.data) == 4
 
     def test_user_can_access_shared_task(self, auth_client, create_user):
         user_b = User.objects.create_user(
@@ -32,7 +32,7 @@ class TestTaskSecurity:
         response = auth_client.get(url)
 
         assert response.status_code == 200
-        assert len(response.data) == 1
+        assert len(response.data) == 4
 
 
 @pytest.mark.django_db

@@ -3,7 +3,7 @@ import os
 from unittest.mock import patch
 from django.urls import reverse
 from django.contrib.auth import get_user_model
-from tasks.models import Task, Category
+from tasks.models import Task
 
 User = get_user_model()
 

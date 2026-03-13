@@ -19,21 +19,13 @@ class TaskSerializer(serializers.ModelSerializer):
         many=True, read_only=True, slug_field="email"
     )
 
+    categories = serializers.PrimaryKeyRelatedField(
+        many=True, queryset=Category.objects.all(), required=False
+    )
+
     class Meta:
         model = Task
-        fields = [
-            "id",
-            "title",
-            "description",
-            "is_completed",
-            "is_suspended",
-            "created_at",
-            "owner",
-            "category",
-            "category_name",
-            "shared_with",
-            "shared_with_emails",
-        ]
+        fields = "__all__"
         read_only_fields = ["owner", "created_at"]
 
     def validate_category(self, value):

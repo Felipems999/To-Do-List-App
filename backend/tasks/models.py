@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from rest_framework import serializers
 
 
 class Category(models.Model):
@@ -23,9 +24,7 @@ class Task(models.Model):
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="owned_tasks"
     )
 
-    category = models.ForeignKey(
-        Category, on_delete=models.SET_NULL, null=True, blank=True, related_name="tasks"
-    )
+    categories = models.ManyToManyField(Category, related_name="tasks", blank=True)
 
     shared_with = models.ManyToManyField(
         settings.AUTH_USER_MODEL, related_name="shared_tasks", blank=True

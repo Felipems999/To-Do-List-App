@@ -6,6 +6,9 @@ import {
     ListItemText,
     IconButton,
     Checkbox,
+    Typography,
+    Chip,
+    Stack,
 } from "@mui/material";
 import Edit from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -14,6 +17,7 @@ import { Share } from "@mui/icons-material";
 
 const TasksList = ({
     tasksList,
+    categories,
     handleOpenEditForm,
     handleDeleteTask,
     handleCompleteTask,
@@ -74,15 +78,36 @@ const TasksList = ({
                             />
                             <ListItemText
                                 primary={task.title}
-                                secondary={task.description}
-                                sx={{
-                                    textDecoration: task.is_completed
-                                        ? "line-through"
-                                        : "none",
-                                    color: task.is_completed
-                                        ? "text.secondary"
-                                        : "text.primary",
-                                }}
+                                secondary={
+                                    <Box component="span">
+                                        <Typography
+                                            variant="body2"
+                                            component="span"
+                                            display="block"
+                                        >
+                                            {task.description}
+                                        </Typography>
+                                        <Stack
+                                            direction="row"
+                                            spacing={1}
+                                            sx={{ mt: 1 }}
+                                        >
+                                            {task.categories?.map((catId) => {
+                                                const cat = categories.find(
+                                                    (c) => c.id === catId,
+                                                );
+                                                return cat ? (
+                                                    <Chip
+                                                        key={catId}
+                                                        label={cat.name}
+                                                        size="small"
+                                                        variant="outlined"
+                                                    />
+                                                ) : null;
+                                            })}
+                                        </Stack>
+                                    </Box>
+                                }
                             />
                         </ListItem>
                     ))

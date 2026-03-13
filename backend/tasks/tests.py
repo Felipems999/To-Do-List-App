@@ -1,4 +1,5 @@
 import pytest
+import os
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 from tasks.models import Task, Category
@@ -50,3 +51,10 @@ class TestCategorySecurity:
 
         assert response.status_code == 200
         assert len(response.data) == 0
+
+
+@pytest.mark.skipif(
+    os.environ.get("CI") == "true", reason="Pula testes de IA no Pipeline de CI"
+)
+def test_criar_tarefa_com_ia(self):
+    pass

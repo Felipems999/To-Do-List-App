@@ -3,11 +3,12 @@ export interface Task {
   title: string;
   description: string;
   is_completed: boolean;
-  category: Category[];
+  categories: number[];
 }
 
 export interface TasksListType {
   tasksList: Task[];
+  categories: Category[];
   handleOpenEditForm: (value: Task) => void;
   handleDeleteTask: (value: Task) => void;
   handleCompleteTask: (value: Task) => void;

@@ -41,23 +41,33 @@ const HomePage = () => {
             } else if (statusFilter === "pending") {
                 params.append("is_completed", "false");
             } else if (statusFilter !== "all") {
-                params.append("category", statusFilter.toString());
+                params.append("categories", statusFilter.toString());
             }
 
-            const [taskRes, catRes] = await Promise.all([
-                serviceAPI.get<{ count: number; results: Task[] }>(
-                    `/tasks/tasks/?${params.toString()}`,
-                ),
-                serviceAPI.get<Category[]>("/tasks/categories/"),
-            ]);
+            const taskRes = await serviceAPI.get<{
+                count: number;
+                results: Task[];
+            }>(`/tasks/tasks/?${params.toString()}`);
 
             setTasks(taskRes.data.results);
             setTotalCount(taskRes.data.count);
-            setCategories(catRes.data);
         } catch (error) {
-            console.error("Erro ao carregar dados", error);
+            console.error("Erro ao carregar tarefas", error);
         }
     };
+
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                const catRes =
+                    await serviceAPI.get<Category[]>("/tasks/categories/");
+                setCategories(catRes.data);
+            } catch (error) {
+                console.error("Erro ao carregar categorias", error);
+            }
+        };
+        fetchCategories();
+    }, []);
 
     useEffect(() => {
         fetchData();
@@ -76,10 +86,17 @@ const HomePage = () => {
 
     const handleSaveTask = async (task: Partial<Task>) => {
         try {
+            const payload = {
+                title: task.title,
+                description: task.description,
+                categories: task.categories,
+                is_completed: task.is_completed,
+            };
+
             if (taskToEdit) {
-                await serviceAPI.put(`/tasks/tasks/${taskToEdit.id}/`, task);
+                await serviceAPI.put(`/tasks/tasks/${taskToEdit.id}/`, payload);
             } else {
-                await serviceAPI.post("/tasks/tasks/", task);
+                await serviceAPI.post("/tasks/tasks/", payload);
             }
             fetchData();
             handleCloseDialog();
@@ -178,6 +195,7 @@ const HomePage = () => {
 
                 <TasksList
                     tasksList={tasks}
+                    categories={categories}
                     handleCompleteTask={handleCompleteTask}
                     handleDeleteTask={handleDeleteTask}
                     handleOpenEditForm={handleOpenEditDialog}

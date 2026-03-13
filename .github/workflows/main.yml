@@ -9,21 +9,34 @@ on:
 jobs:
     test-backend:
         runs-on: ubuntu-latest
+
+        defaults:
+            run:
+                working-directory: ./backend
+
         steps:
             - uses: actions/checkout@v3
+
             - name: Set up Python
               uses: actions/setup-python@v4
               with:
                   python-version: "3.11"
+
             - name: Install dependencies
               run: |
-                  cd backend
                   python -m pip install --upgrade pip
                   pip install -r requirements.txt
+                  pip install pytest-django selenium webdriver-manager
+
             - name: Create .env
               run: |
-                  cd backend
                   cp .env-example .env
+                  echo "SECRET_KEY=django-insecure-test-key-123" >> .env
+                  echo "GEMINI_KEY=${{ secrets.GEMINI_KEY }}" >> .env
+
             - name: Run Pytest
+              env:
+                  SECRET_KEY: "django-insecure-test-key-123"
+                  DJANGO_SETTINGS_MODULE: core.settings
               run: |
                   pytest
